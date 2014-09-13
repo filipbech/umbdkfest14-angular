@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Umbracular</title>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
+<body>
+	
+	<div ng-app="ufest" ng-controller="newsCtrl" class="container">
+		<div class="jumbotron">
+			<h1>Filters</h1>
+			<h4>Filtering, ordering and formatting client-side</h4>
+			<input type="text" ng-model="keywords" placeholder="Filter in content-field here..." class="form-control">
+
+			<h4>Ordering</h4>
+			<select ng-model="field" ng-init="field='created'" ng-change="reverse=false" class="form-control">
+				<option value="created">Created date</option>
+				<option value="name">Name</option>
+			</select>
+
+			<button ng-click="reverse=!reverse" class="btn" ng-class="{'btn-info':reverse}">Flip</button>
+
+		</div>
+		<ul class="list-unstyled">
+			<li ng-repeat="item in items | filter:{content:keywords} | orderBy:field:reverse">
+				<h3>{{item.name}}</h3>
+				<small>{{item.created | date:'dd.MM.yyyy'}}</small>
+				<div ng-bind-html="item.content"></div>
+			</li>
+			<li ng-if="!items"><p>Wait for server to respond (it goes to sleep, so first request may be really slow...</p></li>
+		</ul>
+	</div>
+
+
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular.js"></script>
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular-sanitize.js"></script>
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular-animate.js"></script>
+	<script type="text/javascript">
+
+		var app = angular.module('ufest',['ngSanitize','ngAnimate']); 
+		 // Include ngSanitize (and source) in order to parse "unsafe" html in the view 
+
+		app.controller('newsCtrl', ['$scope','$http','$timeout',function($scope,$http, $timeout) {
+	
+			var getNews = $http({
+				url:'http://apitalk.azurewebsites.net/umbraco/api/newsapi/Search/',
+				method:'GET',
+				params:$scope.query
+			});
+
+			/* If the getNews promise returns successfull (http status 200 ok)  */
+			getNews.success(function(res) {
+				$scope.items = res.data;
+			});
+
+			/* Otherwise */
+			getNews.error(function(res) {
+				if (res.meta && res.meta.error) {
+					console.log(res.meta.error);
+				} else {
+					console.log('other unknown error, connection error etc...');	
+				}
+			});
+
+		}]);
+
+
+	</script>
+
+
+	<style>
+
+		/* Transition only applies when animating */
+		li.ng-enter, li.ng-leave {
+			transition:all 0.5s;
+			overflow: hidden;
+		}
+
+		/* Coming in */
+		li.ng-enter {
+			opacity:0;
+			max-height:0;
+		}
+		li.ng-enter.ng-enter-active {
+			opacity:1;
+			max-height:200px;
+		}
+
+		/* Going out */
+		li.ng-leave {
+			opacity:1;
+			max-height:200px;
+		}
+		li.ng-leave.ng-leave-active {
+			opacity:0;
+			max-height:0;
+		}
+	</style>
+
+</body>
+</html>

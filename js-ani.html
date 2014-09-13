@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Umbracular</title>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+</head>
+<body>
+	
+	<div ng-app="ufest" ng-controller="newsCtrl" class="container">
+		<div class="jumbotron">
+			<h1>Search in News</h1>
+			<h4>Asking the server again</h4>
+			<input type="text" ng-model="query.keywords" placeholder="Search here..." class="form-control">
+			<!-- Add this (or other form-fields with ng-model:'query.xxx') to automatically add to the search-query-string...
+				<select ng-model="query.category">
+					<option value="1">Category 1</option>
+					<option value="2">Category 2</option>
+					<option value="3">Category 3</option>
+					<option value="4">Category 4</option>
+				</select>
+			-->
+		</div>
+		<ul class="list-unstyled">
+			<li class="repeat" ng-repeat="item in items track by item.id">
+				<h3>{{item.name}}</h3>
+				<small>{{item.created | date:'dd.MM.yyyy'}}</small>
+				<div ng-bind-html="item.content"></div>
+			</li>
+			<li ng-if="!items"><p>Wait for server to respond (it goes to sleep, so first request may be really slow...</p></li>
+		</ul>
+	</div>
+
+
+	<!-- added jQuery for simplest JS animation -->
+	<script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.js"></script>
+
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular.js"></script>
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular-sanitize.js"></script>
+	<script type="text/javascript" src="//code.angularjs.org/1.2.24/angular-animate.js"></script>
+	<script type="text/javascript">
+
+		var app = angular.module('ufest',['ngSanitize','ngAnimate']); 
+		 // Include ngSanitize (and source) in order to parse "unsafe" html in the view 
+
+		app.controller('newsCtrl', ['$scope','$http','$timeout',function($scope,$http, $timeout) {
+			
+			 // This will store the timeout promise  
+			var timer = {}; 
+
+			$scope.$watch('query', function() {
+
+				 // Clear existing timeout 
+				$timeout.cancel(timer); 
+
+				 // Add a new timeout for 300ms
+				timer = $timeout(function() { 
+
+					var getNews = $http({
+						url:'http://apitalk.azurewebsites.net/umbraco/api/newsapi/Search/',
+						method:'GET',
+						params:$scope.query
+					});
+
+					/* If the getNews promise returns successfull (http status 200 ok)  */
+					getNews.success(function(res) {
+						$scope.items = res.data;
+					});
+
+					/* Otherwise */
+					getNews.error(function(res) {
+						if (res.meta && res.meta.error) {
+							console.log(res.meta.error);
+						} else {
+							console.log('other unknown error, connection error etc...');	
+						}
+					});
+
+				},300);
+
+			},true);
+
+		}]);
+
+		
+		app.animation('.repeat', function() {
+			return {
+				enter:function(element,done) {
+					$(element).css({
+						opacity:0,
+						maxHeight:0
+					}).animate({
+						opacity:1,
+						maxHeight:200
+					},400,function() {
+						$(element).css({
+							maxHeight:'none'
+						});
+						done();
+					});
+				}, 
+				leave:function(element,done) {
+					$(element).animate({
+						opacity:0,
+						maxHeight:0
+					},400,done);
+				}
+
+			}
+		});
+
+	</script>
+
+	<style>
+		li.repeat {
+			overflow:hidden;
+		}
+	</style>
+
+</body>
+</html>
