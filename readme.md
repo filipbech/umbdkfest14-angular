@@ -3,7 +3,7 @@ This repository contains example code from our talk about "AngularJS in the fron
 
 For comments or questions, you can find me on twitter [@filipbech](https://twitter.com/filipbech)
 
-The code to make the API in Umbraco will be avaiable shortly, untill then - please ping [@pjengaard](https://twitter.com/pjengaard). (I will put the link here, when his code is available too).
+The code for the Umbraco API is available as a seperate repository. All related questions (and credit) should go to  [@pjengaard](https://twitter.com/pjengaard). Repository is avaiable at [https://github.com/rpjengaard/AngularApiTalk](https://github.com/rpjengaard/AngularApiTalk).
 
 ###This repository contains three files.
 * filters.html - Filters demo (filtering, ordering and formatting)
